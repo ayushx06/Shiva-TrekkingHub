@@ -488,9 +488,14 @@ const botInput = document.getElementById("botInput");
 const botBody = document.getElementById("botBody");
 const botSend = document.getElementById("botSend");
 const botSuggestCards = document.querySelectorAll(".bot-suggest-card");
+let faqBotDragControls = null;
 
 if (faqBot && botToggle) {
   botToggle.addEventListener("click", () => {
+    if (faqBotDragControls && window.matchMedia("(max-width: 900px)").matches) {
+      faqBotDragControls.clearPosition();
+    }
+
     faqBot.classList.add("open");
     botToggle.classList.add("opened-once");
     if (botInput) {
@@ -504,6 +509,9 @@ if (faqBot && botToggle) {
 if (faqBot && botClose) {
   botClose.addEventListener("click", () => {
     faqBot.classList.remove("open");
+    if (faqBotDragControls) {
+      faqBotDragControls.restorePosition();
+    }
   });
 }
 
@@ -595,3 +603,162 @@ if (botSuggestCards.length > 0) {
     });
   });
 }
+
+// =============================
+// MOBILE FLOATING BUTTON DRAG
+// =============================
+function setupMobileFloatingDrag(element, storageKey, handle = element) {
+  if (!element || !handle) return;
+
+  const mobileQuery = window.matchMedia("(max-width: 900px)");
+  let dragState = null;
+  let suppressNextClick = false;
+
+  function getSavedPosition() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey));
+      if (typeof saved?.left === "number" && typeof saved?.top === "number") {
+        return saved;
+      }
+    } catch (error) {
+      return null;
+    }
+
+    return null;
+  }
+
+  function savePosition(left, top) {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify({ left, top }));
+    } catch (error) {
+      return;
+    }
+  }
+
+  function getBoundedPosition(left, top) {
+    const rect = element.getBoundingClientRect();
+    const maxLeft = Math.max(0, window.innerWidth - rect.width);
+    const maxTop = Math.max(0, window.innerHeight - rect.height);
+
+    return {
+      left: Math.min(Math.max(left, 0), maxLeft),
+      top: Math.min(Math.max(top, 0), maxTop)
+    };
+  }
+
+  function applyPosition(left, top) {
+    const bounded = getBoundedPosition(left, top);
+
+    element.style.left = `${bounded.left}px`;
+    element.style.top = `${bounded.top}px`;
+    element.style.right = "auto";
+    element.style.bottom = "auto";
+
+    return bounded;
+  }
+
+  function clearPosition() {
+    element.style.left = "";
+    element.style.top = "";
+    element.style.right = "";
+    element.style.bottom = "";
+  }
+
+  function restorePosition() {
+    if (!mobileQuery.matches) {
+      clearPosition();
+      return;
+    }
+
+    const saved = getSavedPosition();
+    if (saved) {
+      const bounded = applyPosition(saved.left, saved.top);
+      savePosition(bounded.left, bounded.top);
+    }
+  }
+
+  function startDrag(event) {
+    if (!mobileQuery.matches || event.button > 0) return;
+
+    const rect = element.getBoundingClientRect();
+    dragState = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      left: rect.left,
+      top: rect.top,
+      moved: false
+    };
+
+    applyPosition(rect.left, rect.top);
+    element.classList.add("dragging");
+
+    if (handle.setPointerCapture) {
+      handle.setPointerCapture(event.pointerId);
+    }
+  }
+
+  function moveDrag(event) {
+    if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - dragState.startX;
+    const deltaY = event.clientY - dragState.startY;
+
+    if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+      dragState.moved = true;
+    }
+
+    if (dragState.moved) {
+      applyPosition(dragState.left + deltaX, dragState.top + deltaY);
+    }
+  }
+
+  function endDrag(event) {
+    if (!dragState || dragState.pointerId !== event.pointerId) return;
+
+    if (handle.releasePointerCapture) {
+      handle.releasePointerCapture(event.pointerId);
+    }
+
+    element.classList.remove("dragging");
+
+    if (dragState.moved) {
+      const rect = element.getBoundingClientRect();
+      const bounded = applyPosition(rect.left, rect.top);
+      savePosition(bounded.left, bounded.top);
+      suppressNextClick = true;
+      setTimeout(() => {
+        suppressNextClick = false;
+      }, 350);
+    }
+
+    dragState = null;
+  }
+
+  element.addEventListener(
+    "click",
+    event => {
+      if (!suppressNextClick) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      suppressNextClick = false;
+    },
+    true
+  );
+
+  handle.addEventListener("pointerdown", startDrag);
+  handle.addEventListener("pointermove", moveDrag);
+  handle.addEventListener("pointerup", endDrag);
+  handle.addEventListener("pointercancel", endDrag);
+  window.addEventListener("resize", restorePosition);
+
+  restorePosition();
+
+  return {
+    clearPosition,
+    restorePosition
+  };
+}
+
+faqBotDragControls = setupMobileFloatingDrag(faqBot, "shivaFaqBotPosition", botToggle);
+setupMobileFloatingDrag(floatingWhatsApp, "shivaWhatsAppPosition");
