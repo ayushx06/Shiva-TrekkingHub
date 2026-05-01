@@ -291,6 +291,108 @@ const modalBody = document.getElementById("modal-body");
 const openButtons = document.querySelectorAll(".open-itinerary");
 const trekCards = document.querySelectorAll(".trek-card");
 
+const trekCardImages = {
+  "everest-card": [
+    "images/gallery/everest-base-camp/everest1.jpg",
+    "images/gallery/everest-base-camp/everest3.jpg",
+    "images/gallery/everest-base-camp/everest7.jpg"
+  ],
+  "roundannapurna-card": [
+    "images/gallery/round-annapurna/anna1.jpg",
+    "images/gallery/round-annapurna/anna4.jpg",
+    "images/gallery/round-annapurna/anna8.jpg"
+  ],
+  "annapurna-card": [
+    "images/gallery/annapurna-base-camp/abc1.jpg",
+    "images/gallery/annapurna-base-camp/abc5.jpg",
+    "images/gallery/annapurna-base-camp/abc10.jpg"
+  ],
+  "poonhill-card": [
+    "images/gallery/poon-hill/poon1.jpg",
+    "images/gallery/poon-hill/poon4.jpg",
+    "images/gallery/poon-hill/poon10.jpg"
+  ],
+  "mardi-card": [
+    "images/gallery/mardi-himal/mardi1.jpg",
+    "images/gallery/mardi-himal/mardi7.jpg",
+    "images/gallery/mardi-himal/mardi13.jpg"
+  ],
+  "khopra-card": [
+    "images/gallery/khopra/khopra1.jpg",
+    "images/gallery/khopra/khopra3.jpg",
+    "images/gallery/khopra/khopra6.jpg"
+  ],
+  "langtang-card": [
+    "images/gallery/langtang/langtang1.jpg",
+    "images/gallery/langtang/langtang4.jpg",
+    "images/gallery/langtang/langtang10.jpg"
+  ],
+  "pokhara-card": [
+    "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=1200&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1200&q=80&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=80&auto=format&fit=crop"
+  ],
+  "manaslu-card": [
+    "images/gallery/manaslu/manaslu1.jpg",
+    "images/gallery/manaslu/manaslu8.jpg",
+    "images/gallery/manaslu/manaslu18.jpg"
+  ],
+  "gosaikunda-card": [
+    "images/gallery/gosaikunda/gosaikunda1.jpg",
+    "images/gallery/gosaikunda/gosaikunda5.jpg",
+    "images/gallery/gosaikunda/gosaikunda10.jpg"
+  ],
+  "uppermustang-card": [
+    "images/gallery/uppermustang/mustang1.jpg",
+    "images/gallery/uppermustang/mustang6.jpg",
+    "images/gallery/uppermustang/mustang15.jpg"
+  ]
+};
+
+function initTrekCardSlideshows() {
+  Object.entries(trekCardImages).forEach(([cardClass, images], cardIndex) => {
+    const card = document.querySelector(`.${cardClass}`);
+
+    if (!card || images.length === 0) return;
+
+    images.forEach(src => {
+      const preload = new Image();
+      preload.src = src;
+    });
+
+    const layers = [document.createElement("span"), document.createElement("span")];
+    let activeLayer = 0;
+    let imageIndex = 0;
+
+    layers.forEach((layer, index) => {
+      layer.className = "trek-card-bg";
+      layer.style.backgroundImage = `url("${images[index % images.length]}")`;
+      card.prepend(layer);
+    });
+
+    card.style.backgroundImage = `url("${images[0]}")`;
+    layers[0].classList.add("active");
+
+    setTimeout(() => {
+      setInterval(() => {
+        imageIndex = (imageIndex + 1) % images.length;
+        activeLayer = activeLayer === 0 ? 1 : 0;
+
+        const nextLayer = layers[activeLayer];
+        const previousLayer = layers[activeLayer === 0 ? 1 : 0];
+        const nextImage = images[imageIndex];
+
+        nextLayer.style.backgroundImage = `url("${nextImage}")`;
+        card.style.backgroundImage = `url("${nextImage}")`;
+        nextLayer.classList.add("active");
+        previousLayer.classList.remove("active");
+      }, 4000);
+    }, cardIndex * 280);
+  });
+}
+
+initTrekCardSlideshows();
+
 function openTrekModal(trek) {
   if (!modal || !modalBody) return;
 
