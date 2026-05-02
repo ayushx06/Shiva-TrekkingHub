@@ -124,13 +124,7 @@ function loadTrekGallery(images) {
 // =============================
 // FLOATING WHATSAPP BUTTON
 // =============================
-const floatingWhatsApp = document.createElement("a");
-floatingWhatsApp.href =
-  "https://wa.me/9779848248353?text=Hello%20Shiva%20Subedi%2C%20I%20want%20to%20plan%20a%20trek%20in%20Nepal.";
-floatingWhatsApp.target = "_blank";
-floatingWhatsApp.className = "floating-whatsapp";
-floatingWhatsApp.innerHTML = "💬";
-document.body.appendChild(floatingWhatsApp);
+const floatingWhatsApp = document.querySelector(".floating-whatsapp");
 
 // =============================
 // TREK ITINERARY MODAL SYSTEM
@@ -581,138 +575,11 @@ if (faqItems.length > 0) {
 }
 
 // =============================
-// PREMIUM FAQ BOT
+// FLOATING BUTTON DRAG
 // =============================
-const faqBot = document.getElementById("faqBot");
-const botToggle = document.getElementById("botToggle");
-const botClose = document.getElementById("botClose");
-const botInput = document.getElementById("botInput");
-const botBody = document.getElementById("botBody");
-const botSend = document.getElementById("botSend");
-const botSuggestCards = document.querySelectorAll(".bot-suggest-card");
-let faqBotDragControls = null;
-
-if (faqBot && botToggle) {
-  botToggle.addEventListener("click", () => {
-    if (faqBotDragControls && window.matchMedia("(max-width: 900px)").matches) {
-      faqBotDragControls.clearPosition();
-    }
-
-    faqBot.classList.add("open");
-    botToggle.classList.add("opened-once");
-    if (botInput) {
-      setTimeout(() => botInput.focus(), 200);
-    }
-    const unread = botToggle.querySelector(".bot-toggle-unread");
-    if (unread) unread.style.display = "none";
-  });
-}
-
-if (faqBot && botClose) {
-  botClose.addEventListener("click", () => {
-    faqBot.classList.remove("open");
-    if (faqBotDragControls) {
-      faqBotDragControls.restorePosition();
-    }
-  });
-}
-
-function getBotAnswer(question) {
-  const q = question.toLowerCase();
-
-  if (q.includes("hello") || q.includes("hi") || q.includes("namaste")) {
-    return "Namaste! I can help you choose the right trek, compare routes, explain prices, suggest the best season and guide you to book directly with Shiva.";
-  }
-
-  if (q.includes("beginner") || q.includes("easy") || q.includes("first time")) {
-    return "For beginners, Poon Hill is the easiest choice. Pokhara day hikes are great for short stays, and Mardi Himal is a very good next step if you want something more scenic but still manageable.";
-  }
-
-  if (q.includes("everest") && q.includes("annapurna")) {
-    return "Everest Base Camp is more iconic and more demanding because of altitude. Annapurna Base Camp is shorter, easier to access from Pokhara and better for many travellers wanting a balanced Himalayan trek.";
-  }
-
-  if (q.includes("price") || q.includes("cost") || q.includes("budget")) {
-    return "Price depends on route, number of days, group size, transport, permits and accommodation style. You can use the site calculator for a rough idea, then contact Shiva for an exact best offer.";
-  }
-
-  if (q.includes("season") || q.includes("best time") || q.includes("weather") || q.includes("month")) {
-    return "The best trekking seasons in Nepal are usually spring from March to May and autumn from September to November because mountain views and trail conditions are generally better.";
-  }
-
-  if (q.includes("permit") || q.includes("guide") || q.includes("solo")) {
-    return "Permit and guide requirements depend on the trekking region. Shiva can help explain exactly what is needed for your chosen route and travel dates.";
-  }
-
-  if (q.includes("book") || q.includes("booking") || q.includes("whatsapp") || q.includes("contact")) {
-    return "To book, send your travel dates, trek choice, group size and fitness level through WhatsApp or the contact form. Shiva can then suggest the best route and confirm next steps.";
-  }
-
-  return "I can help with trek selection, route comparison, price guidance, season advice, permits and booking support. Ask me something like: Everest or Annapurna? Which trek is best for beginners? How do I book?";
-}
-
-function addBotMessage(message, type) {
-  if (!botBody) return;
-
-  const paragraph = document.createElement("p");
-
-  if (type === "user") {
-    paragraph.classList.add("user-message");
-    paragraph.innerHTML = `<strong>You:</strong> ${message}`;
-  } else {
-    paragraph.classList.add("bot-message");
-    paragraph.innerHTML = `<strong>Shiva Assistant:</strong> ${message}`;
-  }
-
-  botBody.appendChild(paragraph);
-  botBody.scrollTop = botBody.scrollHeight;
-}
-
-function sendBotMessage(customQuestion = "") {
-  if (!botInput || !botBody) return;
-
-  const question = (customQuestion || botInput.value).trim();
-  if (!question) return;
-
-  addBotMessage(question, "user");
-  botInput.value = "";
-  botInput.focus();
-
-  setTimeout(() => {
-    const answer = getBotAnswer(question);
-    addBotMessage(answer, "bot");
-  }, 300);
-}
-
-if (botInput && botBody) {
-  botInput.addEventListener("keydown", event => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      sendBotMessage();
-    }
-  });
-}
-
-if (botSend) {
-  botSend.addEventListener("click", () => sendBotMessage());
-}
-
-if (botSuggestCards.length > 0) {
-  botSuggestCards.forEach(card => {
-    card.addEventListener("click", () => {
-      const question = card.dataset.question || "";
-      sendBotMessage(question);
-    });
-  });
-}
-
-// =============================
-// MOBILE FLOATING BUTTON DRAG
-// =============================
-function setupMobileFloatingDrag(element, storageKey, handle = element) {
+function setupFloatingButtonDrag(element, storageKey, handle = element) {
   if (!element || !handle) return;
 
-  const mobileQuery = window.matchMedia("(max-width: 900px)");
   let dragState = null;
   let suppressNextClick = false;
 
@@ -767,11 +634,6 @@ function setupMobileFloatingDrag(element, storageKey, handle = element) {
   }
 
   function restorePosition() {
-    if (!mobileQuery.matches) {
-      clearPosition();
-      return;
-    }
-
     const saved = getSavedPosition();
     if (saved) {
       const bounded = applyPosition(saved.left, saved.top);
@@ -780,7 +642,7 @@ function setupMobileFloatingDrag(element, storageKey, handle = element) {
   }
 
   function startDrag(event) {
-    if (!mobileQuery.matches || event.button > 0) return;
+    if (event.button > 0) return;
 
     const rect = element.getBoundingClientRect();
     dragState = {
@@ -789,11 +651,18 @@ function setupMobileFloatingDrag(element, storageKey, handle = element) {
       startY: event.clientY,
       left: rect.left,
       top: rect.top,
-      moved: false
+      moved: false,
+      styles: {
+        left: element.style.left,
+        top: element.style.top,
+        right: element.style.right,
+        bottom: element.style.bottom
+      }
     };
 
     applyPosition(rect.left, rect.top);
     element.classList.add("dragging");
+    element.style.transition = "none";
 
     if (handle.setPointerCapture) {
       handle.setPointerCapture(event.pointerId);
@@ -823,6 +692,7 @@ function setupMobileFloatingDrag(element, storageKey, handle = element) {
     }
 
     element.classList.remove("dragging");
+    element.style.transition = "";
 
     if (dragState.moved) {
       const rect = element.getBoundingClientRect();
@@ -832,6 +702,11 @@ function setupMobileFloatingDrag(element, storageKey, handle = element) {
       setTimeout(() => {
         suppressNextClick = false;
       }, 350);
+    } else {
+      element.style.left = dragState.styles.left;
+      element.style.top = dragState.styles.top;
+      element.style.right = dragState.styles.right;
+      element.style.bottom = dragState.styles.bottom;
     }
 
     dragState = null;
@@ -862,5 +737,4 @@ function setupMobileFloatingDrag(element, storageKey, handle = element) {
   };
 }
 
-faqBotDragControls = setupMobileFloatingDrag(faqBot, "shivaFaqBotPosition", botToggle);
-setupMobileFloatingDrag(floatingWhatsApp, "shivaWhatsAppPosition");
+setupFloatingButtonDrag(floatingWhatsApp, "shivaWhatsAppPosition");
