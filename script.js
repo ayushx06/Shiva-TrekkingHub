@@ -13,6 +13,45 @@ const nav = document.querySelector("nav");
 const sections = document.querySelectorAll("section[id], header[id]");
 const navLinks = document.querySelectorAll("nav a");
 
+function getScrollOffset() {
+  const navHeight = nav ? nav.getBoundingClientRect().height : 0;
+  return navHeight + 16;
+}
+
+function scrollToSectionTarget(target, behavior = "smooth") {
+  const top = target.id === "home"
+    ? 0
+    : window.scrollY + target.getBoundingClientRect().top - getScrollOffset();
+
+  window.scrollTo({
+    top: Math.max(0, top),
+    behavior
+  });
+}
+
+document.addEventListener("click", event => {
+  const link = event.target.closest('a[href^="#"]');
+  if (!link) return;
+
+  const hash = link.getAttribute("href");
+  if (!hash || hash === "#") return;
+
+  const targetId = decodeURIComponent(hash.slice(1));
+  const target = document.getElementById(targetId);
+  if (!target) return;
+
+  event.preventDefault();
+  history.pushState(null, "", hash);
+
+  scrollToSectionTarget(target);
+
+  [250, 700].forEach(delay => {
+    window.setTimeout(() => {
+      scrollToSectionTarget(target, "auto");
+    }, delay);
+  });
+});
+
 window.addEventListener("scroll", () => {
   let current = "";
 
