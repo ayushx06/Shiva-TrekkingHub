@@ -124,7 +124,7 @@ if (galleryImages.length > 0) {
   lightbox.classList.add("lightbox");
   lightbox.innerHTML = `
     <span class="lightbox-close">&times;</span>
-    <img src="" alt="Full trekking photo">
+    <img src="" alt="Nepal trekking photo with Shiva Subedi" loading="lazy" decoding="async">
   `;
   document.body.appendChild(lightbox);
 
@@ -135,6 +135,7 @@ if (galleryImages.length > 0) {
     img.addEventListener("click", () => {
       lightbox.classList.add("active");
       lightboxImg.src = img.src;
+      lightboxImg.alt = img.alt || "Nepal trekking photo with Shiva Subedi";
     });
   });
 
